@@ -1,19 +1,6 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "buildCommand": "npm run build",
-  "startCommand": "npm start",
-  "output": "standalone",
-  "env": {
-    "DATABASE_URL": {
-      "fromEnv": true
-    },
-    "NEXTAUTH_URL": {
-      "fromEnv": true
-    },
-    "NEXTAUTH_SECRET": {
-      "fromEnv": true
-    }
-  },
   "headers": [
     {
       "source": "/api/(.*)",
