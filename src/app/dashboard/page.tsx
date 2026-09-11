@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { ArrowUp, AlertTriangle, Sparkles, Zap } from "lucide-react";
+import { ArrowUp, AlertTriangle, Sparkles, Zap, RefreshCw } from "lucide-react";
 import { AiOrb, AiThinking, Typewriter, SparkleField, Tilt, Ripple, Confetti } from "@/lib/ui/ai-effects";
 
 type Role = "user" | "assistant";
@@ -137,6 +137,16 @@ export default function ChatPage() {
     }
   }
 
+  /* ── Restart: clear the conversation back to the welcome screen ── */
+  function restartChat() {
+    setMessages([]);
+    setError(null);
+    setInput("");
+    setCelebrate(false);
+    if (inputRef.current) inputRef.current.style.height = "42px";
+    inputRef.current?.focus();
+  }
+
   const isEmpty = messages.length === 0 && !loading;
 
   return (
@@ -212,6 +222,18 @@ export default function ChatPage() {
         <div className="max-w-3xl mx-auto relative">
           <Confetti fire={celebrate} />
           <div className="flex items-end gap-2 ai-input-glow rounded-3xl border border-app bg-surface shadow-card px-3 py-2 transition-all">
+            {/* Restart chat button — resets conversation to the welcome screen */}
+            {!isEmpty && (
+              <button
+                onClick={restartChat}
+                disabled={loading}
+                title="Restart chat"
+                aria-label="Restart chat"
+                className="pop-in h-9 w-9 rounded-full border border-app bg-surface-2 flex items-center justify-center text-muted hover:text-red-500 dark:hover:text-red-300 hover:border-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:scale-110 active:scale-90 transition-all duration-150 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+              >
+                <RefreshCw size={14} />
+              </button>
+            )}
             <textarea
               ref={inputRef}
               rows={1}

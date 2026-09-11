@@ -166,6 +166,7 @@ export function SparkleField({ count = 14, className = "" }: { count?: number; c
    star canvas + orbiting rings + mouse spotlight (parallax). */
 export function AuroraBackdrop() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const binaryRef = useRef<HTMLCanvasElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
 
   // Twinkling starfield canvas (tiny, cheap, DPR-aware)
@@ -245,6 +246,92 @@ export function AuroraBackdrop() {
     };
   }, []);
 
+  // Matrix-style binary rain — columns of falling 0s and 1s (throttled to 30fps)
+  useEffect(() => {
+    const canvas = binaryRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    let w = 0;
+    let h = 0;
+    let raf = 0;
+    let last = 0;
+    const DPR = Math.min(2, window.devicePixelRatio || 1);
+    const FONT = 13;
+    const GAP_Y = FONT + 2;
+    const TRAIL = 14;
+    const FRAME = 1000 / 30; // cap at 30fps — rain looks identical and saves battery
+    type Col = { x: number; y: number; sp: number; glyphs: string[] };
+    let cols: Col[] = [];
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const randGlyph = () => (Math.random() < 0.5 ? "0" : "1");
+
+    function seed() {
+      const gapX = FONT + 8;
+      const n = Math.ceil(w / gapX);
+      cols = Array.from({ length: n }).map((_, i) => ({
+        x: i * gapX + 2,
+        y: Math.random() * h,
+        sp: 28 + Math.random() * 80,
+        glyphs: Array.from({ length: TRAIL }, randGlyph),
+      }));
+    }
+    function resize() {
+      w = window.innerWidth;
+      h = window.innerHeight;
+      canvas!.width = w * DPR;
+      canvas!.height = h * DPR;
+      canvas!.style.width = `${w}px`;
+      canvas!.style.height = `${h}px`;
+      ctx!.setTransform(DPR, 0, 0, DPR, 0, 0);
+      seed();
+    }
+    function draw(dt: number) {
+      ctx!.clearRect(0, 0, w, h);
+      ctx!.font = `600 ${FONT}px Consolas, "Courier New", monospace`;
+      ctx!.textBaseline = "top";
+      for (const c of cols) {
+        c.y += c.sp * dt;
+        // occasionally flip a glyph so the stream keeps morphing
+        if (Math.random() < 0.08) c.glyphs[(Math.random() * c.glyphs.length) | 0] = randGlyph();
+        for (let k = 0; k < TRAIL; k += 1) {
+          const gy = c.y - k * GAP_Y;
+          if (gy < -FONT || gy > h) continue;
+          const a = Math.max(0, 1 - k / TRAIL);
+          ctx!.fillStyle =
+            k === 0
+              ? `rgba(255,122,127,${(0.85 * a + 0.05).toFixed(3)})`
+              : `rgba(229,56,59,${(0.45 * a).toFixed(3)})`;
+          ctx!.fillText(c.glyphs[k], c.x, gy);
+        }
+        // restart the stream once its whole trail has left the screen
+        if (c.y - TRAIL * GAP_Y > h) {
+          c.y = -Math.random() * h * 0.25;
+          c.sp = 28 + Math.random() * 80;
+          c.glyphs = Array.from({ length: TRAIL }, randGlyph);
+        }
+      }
+    }
+    function frame(t: number) {
+      raf = requestAnimationFrame(frame);
+      if (t - last < FRAME) return;
+      const dt = Math.min(0.1, (t - last) / 1000);
+      last = t;
+      draw(dt);
+    }
+    resize();
+    if (reduced) {
+      draw(0); // single static frame for reduced motion
+    } else {
+      raf = requestAnimationFrame(frame);
+    }
+    window.addEventListener("resize", resize);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", resize);
+    };
+  }, []);
+
   // Mouse parallax spotlight following the cursor (skipped on touch devices — saves battery)
   useEffect(() => {
     if (window.matchMedia("(hover: none)").matches) return;
@@ -289,6 +376,8 @@ export function AuroraBackdrop() {
       <span className="ai-beam" />
       {/* twinkling star canvas */}
       <canvas ref={canvasRef} className="ai-stars" />
+      {/* matrix-style binary rain (0s and 1s) */}
+      <canvas ref={binaryRef} className="ai-binary" />
       {/* perspective grid floor */}
       <span className="ai-aurora-grid" />
       {/* dotted world-map style texture */}

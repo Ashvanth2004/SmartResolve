@@ -1,14 +1,16 @@
 ﻿# ResolveAI (SmartResolve)
 
-AI-powered complaint classification & research platform — Next.js 16, React 19, Tailwind 4, PostgreSQL + MongoDB, with an animated Deadpool-themed UI.
+AI-powered complaint classification & research platform — Next.js 16, React 19, Tailwind 4, MongoDB (or zero-setup in-memory demo mode), with an animated Deadpool-themed UI.
 
 ## Local development
 
 ```bash
 npm install
-cp .env.example .env   # fill in your real values
-npm run dev            # http://localhost:3000
+copy .env.example .env   # Windows  (macOS/Linux: cp .env.example .env)
+npm run dev              # http://localhost:3000
 ```
+
+> Demo mode (`APP_DB=mock`) needs **no database and no network** — the app runs on any machine with Node.js 20+.
 
 ## Deploy to Vercel (2 minutes)
 
@@ -21,8 +23,7 @@ The repo is pre-configured (`vercel.json` + `.env.example`).
 
    | Variable | Value |
    |---|---|
-   | `DATABASE_URL` | your hosted PostgreSQL URL (Neon/Supabase) |
-   | `MONGODB_URI` | your MongoDB Atlas URI |
+   | `MONGODB_URI` | your MongoDB Atlas URI (skip if using `APP_DB=mock` demo mode) |
    | `NEXTAUTH_URL` | `https://<your-app>.vercel.app` (add after first deploy, or your custom domain) |
    | `NEXTAUTH_SECRET` | `openssl rand -base64 32` |
    | `NEXT_PUBLIC_BASE_URL` | same as `NEXTAUTH_URL` |

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Bot, Send, User, Sparkles, Trash2, AlertTriangle, Copy, Check } from "lucide-react";
+import { Bot, Send, User, Sparkles, Trash2, AlertTriangle, Copy, Check, RefreshCw } from "lucide-react";
 import { AiOrb, AiThinking } from "@/lib/ui/ai-effects";
 
 /* ─── Types ─────────────────────────────────────────────── */
@@ -268,8 +268,11 @@ export default function SupportChatPage() {
   }
 
   function clearChat() {
+    // Restart the conversation — keep only the welcome message
     setMessages((prev) => prev.filter((m) => m.id === "welcome"));
     setError(null);
+    setInput("");
+    if (inputRef.current) inputRef.current.style.height = "42px";
     inputRef.current?.focus();
   }
 
@@ -366,6 +369,19 @@ export default function SupportChatPage() {
       {/* ── Input bar ────────────────────────────────────────── */}
       <div className="border-t border-app bg-surface px-4 py-3">
         <div className="flex items-end gap-3 max-w-4xl mx-auto">
+          {/* Restart chat button — resets conversation to the welcome state */}
+          {!isEmpty && (
+            <button
+              onClick={clearChat}
+              disabled={loading}
+              title="Restart chat"
+              aria-label="Restart chat"
+              className="pop-in h-10 px-3 rounded-xl border border-app bg-surface-2 flex items-center justify-center gap-1.5 text-xs font-medium text-muted hover:text-red-600 dark:hover:text-red-300 hover:border-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:-translate-y-0.5 hover:shadow-sm active:translate-y-0 active:scale-95 transition-all duration-150 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
+            >
+              <RefreshCw size={14} />
+              Restart
+            </button>
+          )}
           <textarea
             ref={inputRef}
             id="support-chat-input"
